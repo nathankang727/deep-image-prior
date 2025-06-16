@@ -226,7 +226,11 @@ def optimize(optimizer_type, parameters, closure, LR, num_iter):
         
         for j in range(num_iter):
             optimizer.zero_grad()
-            closure()
+            exit_state = closure()
+            
+            if exit_state is None:
+                print("Ending training.")
+                break
             optimizer.step()
     else:
         assert False

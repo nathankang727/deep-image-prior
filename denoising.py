@@ -116,8 +116,14 @@ last_net = None
 psrn_noisy_last = 0
 
 i = 0
-iterations = []
-losses = []
+iterations = []        # List of all iterations (x-axis for graph)
+losses = []            # List of losses for each iterations (y-axis for graph)
+
+best_psnr = 0          # Best PSNR value so far
+best_iter = 0          # Iteration where best PSNR value occurred
+patience = 50          # Patience value
+best_net_output = None  # Best network output value so far
+early_stop_counter = 0 # Counter before patience
 
 def closure():
     
@@ -146,9 +152,24 @@ def closure():
     # So 'PSRN_gt', 'PSNR_gt_sm' make no sense
     print ('Iteration %05d    Loss %f   PSNR_noisy: %f   PSRN_gt: %f PSNR_gt_sm: %f' % (i, total_loss.item(), psrn_noisy, psrn_gt, psrn_gt_sm), '\r', end='')
     
+    # Stop if loss becomes nan.
     if  np.isnan(total_loss.item()):
         print ("nan loss")
         exit()
+        
+    # Early stopping logic
+    global best_psnr, best_iter, best_net_output, early_stop_counter
+
+    if psrn_gt_sm > best_psnr:
+        best_psnr = psrn_gt_sm
+        best_iter = i
+        early_stop_counter = 0
+        best_net_output = out
+    else:
+        early_stop_counter += 1
+        if early_stop_counter > patience:
+            print("\nPatience exceeded. Stopping at iteration " + str(i))
+            return None
     
     if  PLOT and i % show_every == 0:
         out_np = torch_to_np(out)
@@ -184,8 +205,7 @@ plt.plot(iterations, losses)
 plt.savefig("model_training_outputs/Loss_Graph.png")
 plt.close()
 
-out_np = torch_to_np(net(net_input))
+out_np = torch_to_np(best_net_output)
 q = plot_image_grid([np.clip(out_np, 0, 1), img_np], factor=13);
 plt.savefig("model_training_outputs/FINAL_RESULT.png")
 plt.close()
-
