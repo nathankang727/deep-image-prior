@@ -14,6 +14,10 @@ import torch.optim
 from skimage.measure import compare_psnr
 from utils.denoising_utils import *
 
+import time
+
+start_time = time.time()
+
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark =True
 dtype = torch.cuda.FloatTensor
@@ -116,14 +120,14 @@ last_net = None
 psrn_noisy_last = 0
 
 i = 0
-iterations = []        # List of all iterations (x-axis for graph)
-losses = []            # List of losses for each iterations (y-axis for graph)
+iterations = []         # List of all iterations (x-axis for graph)
+losses = []             # List of losses for each iterations (y-axis for graph)
 
-best_psnr = 0          # Best PSNR value so far
-best_iter = 0          # Iteration where best PSNR value occurred
-patience = 50          # Patience value
+best_psnr = 0           # Best PSNR value so far
+best_iter = 0           # Iteration where best PSNR value occurred
+patience = 10           # Patience value
 best_net_output = None  # Best network output value so far
-early_stop_counter = 0 # Counter before patience
+early_stop_counter = 0  # Counter before patience
 
 def closure():
     
@@ -205,7 +209,12 @@ plt.plot(iterations, losses)
 plt.savefig("model_training_outputs/Loss_Graph.png")
 plt.close()
 
-out_np = torch_to_np(best_net_output)
+out_np = torch_to_np(best_net_output)       # Shows best image
+# out_np = torch_to_np(net(net_input))        # Shows last image
 q = plot_image_grid([np.clip(out_np, 0, 1), img_np], factor=13);
 plt.savefig("model_training_outputs/FINAL_RESULT.png")
+print(best_iter)
 plt.close()
+
+# Print out the time it takes for the code to run.
+print("It took " + str(time.time() - start_time) + " seconds to run.")
