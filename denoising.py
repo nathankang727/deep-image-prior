@@ -19,7 +19,7 @@ import time
 start_time = time.time()
 
 torch.backends.cudnn.enabled = True
-torch.backends.cudnn.benchmark =True
+torch.backends.cudnn.benchmark = True
 dtype = torch.cuda.FloatTensor
 # dtype = torch.Tensor
 
@@ -86,7 +86,7 @@ if fname == 'data/denoising/snail.jpg':
 
     net = net.type(dtype)
 
-elif fname == 'data/denoising/F16_GT.png':
+elif fname == 'data/denoising/denoising_training_outputs/F16_GT.png':
     num_iter = 3000
     input_depth = 32 
     figsize = 4 
@@ -179,7 +179,7 @@ def closure():
         out_np = torch_to_np(out)
         plot_image_grid([np.clip(out_np, 0, 1), 
                          np.clip(torch_to_np(out_avg), 0, 1)], factor=figsize, nrow=1)
-        plt.savefig("model_training_outputs/iteration_" + str(i) + ".png")
+        plt.savefig("denoising_training_outputs/iteration_" + str(i) + ".png")
         plt.close()
     
     # Backtracking
@@ -206,13 +206,13 @@ p = get_params(OPT_OVER, net, net_input)
 optimize(OPTIMIZER, p, closure, LR, num_iter)
 
 plt.plot(iterations, losses)
-plt.savefig("model_training_outputs/Loss_Graph.png")
+plt.savefig("denoising_training_outputs/Loss_Graph.png")
 plt.close()
 
 out_np = torch_to_np(best_net_output)       # Shows best image
 # out_np = torch_to_np(net(net_input))        # Shows last image
 q = plot_image_grid([np.clip(out_np, 0, 1), img_np], factor=13);
-plt.savefig("model_training_outputs/FINAL_RESULT.png")
+plt.savefig("denoising_training_outputs/FINAL_RESULT.png")
 print(best_iter)
 plt.close()
 

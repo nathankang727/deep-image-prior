@@ -1,13 +1,0 @@
-/home/nk1495/.conda/envs/deep-image-prior/lib/python3.7/site-packages/torch/nn/modules/upsampling.py:122: UserWarning: nn.Upsampling is deprecated. Use nn.functional.interpolate instead.
-  warnings.warn("nn.Upsampling is deprecated. Use nn.functional.interpolate instead.")
-/home/nk1495/.conda/envs/deep-image-prior/lib/python3.7/site-packages/torch/nn/functional.py:1961: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
-  "See the documentation of nn.Upsample for details.".format(mode))
-denoising.py:135: UserWarning: DEPRECATED: skimage.measure.compare_psnr has been moved to skimage.metrics.peak_signal_noise_ratio. It will be removed from skimage.measure in version 0.18.
-  psrn_noisy = compare_psnr(img_noisy_np, out.detach().cpu().numpy()[0])
-denoising.py:136: UserWarning: DEPRECATED: skimage.measure.compare_psnr has been moved to skimage.metrics.peak_signal_noise_ratio. It will be removed from skimage.measure in version 0.18.
-  psrn_gt    = compare_psnr(img_np, out.detach().cpu().numpy()[0])
-denoising.py:137: UserWarning: DEPRECATED: skimage.measure.compare_psnr has been moved to skimage.metrics.peak_signal_noise_ratio. It will be removed from skimage.measure in version 0.18.
-  psrn_gt_sm = compare_psnr(img_np, out_avg.detach().cpu().numpy()[0])
-Number of params: 2217831
-Starting optimization with ADAM
-Iteration 00000    Loss 0.086634   PSNR_noisy: 10.623122   PSRN_gt: 11.069699 PSNR_gt_sm: 11.069699 Iteration 00001    Loss 0.085780   PSNR_noisy: 10.666146   PSRN_gt: 11.117861 PSNR_gt_sm: 11.071688 Iteration 00002    Loss 0.256774   PSNR_noisy: 5.904491   PSRN_gt: 6.051038 PSNR_gt_sm: 11.079175 Iteration 00003    Loss 0.083791   PSNR_noisy: 10.768040   PSRN_gt: 11.231496 PSNR_gt_sm: 11.082125 Iteration 00004    Loss nan   PSNR_noisy: nan   PSRN_gt: nan PSNR_gt_sm: nan nan loss
