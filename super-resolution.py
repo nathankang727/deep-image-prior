@@ -142,6 +142,9 @@ def closure():
         plot_image_grid([imgs['HR_np'], imgs['bicubic_np'], np.clip(out_HR_np, 0, 1)], factor=13, nrow=3)
         plt.savefig("super_res_training_outputs/iteration_" + str(i) + ".png", bbox_inches="tight")
         plt.close()
+        
+    iterations.append(i)
+    psnr_HR_values.append(psnr_HR)
 
     i += 1
     
@@ -160,7 +163,7 @@ out_HR_np = np.clip(torch_to_np(best_net_output), 0, 1)
 result_deep_prior = put_in_center(out_HR_np, imgs['orig_np'].shape[1:])
 
 plt.plot(iterations, psnr_HR_values)
-plt.savefig("denoising_training_outputs/PSNR_Graph.png")
+plt.savefig("super_res_training_outputs/PSNR_Graph.png")
 plt.close()
 
 # For the paper we acually took `_bicubic.png` files from LapSRN viewer and used `result_deep_prior` as our result
