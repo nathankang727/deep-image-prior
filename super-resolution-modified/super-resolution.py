@@ -62,7 +62,7 @@ tv_weight = 0.0
 OPTIMIZER = 'adam'
 
 if factor == 4: 
-    num_iter = 4000
+    num_iter = 1500
     reg_noise_std = 0.03
 elif factor == 8:
     num_iter = 4000
@@ -95,7 +95,7 @@ psnr_HR_values = []     # List of psnr_HR values for each iteration (y-axis for 
 
 best_psnr_HR = 0        # Best PSNR value so far for HR (high resolution)  
 best_iter = 0           # Iteration where best PSNR value occurred
-patience = 500           # Patience value
+patience = 10           # Patience value
 best_net_output = None  # Best network output value so far
 early_stop_counter = 0  # Counter before patience
 
@@ -127,11 +127,11 @@ def closure():
         best_psnr_HR = psnr_HR
         best_iter = i
         early_stop_counter = 0
-        best_net_output = out_HR
+        best_net_output = out_HR.detach().clone()
     else:
         early_stop_counter += 1
         if early_stop_counter > patience:
-            print("\nPatience exceeded. Stopping at iteration " + str(i) + ". Best iteration was " + str(best_iter) + ".")
+            print("Patience of " + str(patience) + " exceeded. Best iteration was at " + str(best_iter) + ".")
             return None
 
     # History
