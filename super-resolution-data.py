@@ -19,6 +19,9 @@ from utils.sr_utils import *
 
 import time
 
+from PIL import Image
+from utils.sr_utils import pil_to_np, np_to_pil, crop_image
+
 start_time = time.time()
 
 torch.backends.cudnn.enabled = True
@@ -32,17 +35,33 @@ PLOT = True
 
 # To produce images from the paper we took *_GT.png images from LapSRN viewer for corresponding factor,
 # e.g. x4/zebra_GT.png for factor=4, and x8/zebra_GT.png for factor=8 
-path_to_image = 'data/sr/zebra_GT.png'
 
+imgs = {}
+
+# Load images using PIL
+HR_pil = Image.open('data/sr/label_500x500.png').convert('RGB')
+LR_pil = Image.open('data/sr/input_1000x1000.png').convert('RGB')
+
+imgs['orig_np'] = pil_to_np(HR_pil)
+
+HR_np = pil_to_np(HR_pil)
+LR_np = pil_to_np(LR_pil)
+
+factor = HR_pil.size[0] // LR_pil.size[0]
+
+imgs['HR_pil'] = HR_pil
+imgs['LR_pil'] = LR_pil
+imgs['HR_np'] = HR_np
+imgs['LR_np'] = LR_np
 
 # Starts here
-imgs = load_LR_HR_imgs_sr(path_to_image , imsize, factor, enforse_div32)
+# imgs = load_LR_HR_imgs_sr(path_to_image , imsize, factor, enforse_div32)
 
 imgs['bicubic_np'], imgs['sharp_np'], imgs['nearest_np'] = get_baselines(imgs['LR_pil'], imgs['HR_pil'])
 
 if PLOT:
     plot_image_grid([imgs['HR_np'], imgs['bicubic_np'], imgs['sharp_np'], imgs['nearest_np']], 4,12);
-    plt.savefig("super_res_zebra_image_training/input_images.png", bbox_inches="tight")
+    plt.savefig("super_res_data_training/input_images.png", bbox_inches="tight")
     print ('PSNR bicubic: %.4f   PSNR nearest: %.4f' %  (
                                         compare_psnr(imgs['HR_np'], imgs['bicubic_np']), 
                                         compare_psnr(imgs['HR_np'], imgs['nearest_np'])))
@@ -68,7 +87,9 @@ elif factor == 8:
     num_iter = 4000
     reg_noise_std = 0.05
 else:
-    assert False, 'We did not experiment with other factors'
+    num_iter = 4000
+    reg_noise_std = 0.03
+#     assert False, 'We did not experiment with other factors'
 
 
 net_input = get_noise(input_depth, INPUT, (imgs['HR_pil'].size[1], imgs['HR_pil'].size[0])).type(dtype).detach()
@@ -107,6 +128,10 @@ def closure():
 
     out_HR = net(net_input)
     out_LR = downsampler(out_HR)
+    
+    # Fix any shape mismatch
+    if out_LR.shape != img_LR_var.shape:
+        out_LR = torch.nn.functional.interpolate(out_LR, size=img_LR_var.shape[2:], mode='bilinear', align_corners=False)
 
     total_loss = mse(out_LR, img_LR_var) 
     
@@ -140,7 +165,7 @@ def closure():
     if PLOT and i % 100 == 0:
         out_HR_np = torch_to_np(out_HR)
         plot_image_grid([imgs['HR_np'], imgs['bicubic_np'], np.clip(out_HR_np, 0, 1)], factor=13, nrow=3)
-        plt.savefig("super_res_zebra_image_training/iteration_" + str(i) + ".png", bbox_inches="tight")
+        plt.savefig("super_res_data_training/iteration_" + str(i) + ".png", bbox_inches="tight")
         plt.close()
         
     iterations.append(i)
@@ -163,14 +188,14 @@ out_HR_np = np.clip(torch_to_np(best_net_output), 0, 1)
 result_deep_prior = put_in_center(out_HR_np, imgs['orig_np'].shape[1:])
 
 plt.plot(iterations, psnr_HR_values)
-plt.savefig("super_res_zebra_image_training/PSNR_Graph.png", bbox_inches="tight")
+plt.savefig("super_res_data_training/PSNR_Graph.png", bbox_inches="tight")
 plt.close()
 
 # For the paper we acually took `_bicubic.png` files from LapSRN viewer and used `result_deep_prior` as our result
 plot_image_grid([imgs['HR_np'],
                  imgs['bicubic_np'],
                  out_HR_np], factor=4, nrow=1);
-plt.savefig("super_res_zebra_image_training/final_result.png", bbox_inches="tight")
+plt.savefig("super_res_data_training/final_result.png", bbox_inches="tight")
 plt.close()
 
 # Print total runtime.

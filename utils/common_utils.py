@@ -88,7 +88,7 @@ def plot_image_grid(images_np, nrow =8, factor=1, interpolation='lanczos'):
 
 def load(path):
     """Load PIL image."""
-    img = Image.open(path)
+    img = Image.open(path).convert('RGB')
     return img
 
 def get_image(path, imsize=-1):
