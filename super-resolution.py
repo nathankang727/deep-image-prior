@@ -95,7 +95,7 @@ psnr_HR_values = []     # List of psnr_HR values for each iteration (y-axis for 
 
 best_psnr_HR = 0        # Best PSNR value so far for HR (high resolution)  
 best_iter = 0           # Iteration where best PSNR value occurred
-patience = 500           # Patience value
+patience = 500          # Patience value
 best_net_output = None  # Best network output value so far
 early_stop_counter = 0  # Counter before patience
 

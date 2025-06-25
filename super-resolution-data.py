@@ -29,7 +29,7 @@ torch.backends.cudnn.benchmark =True
 dtype = torch.cuda.FloatTensor
 
 imsize = -1 
-factor = 4 # 8
+factor = 2 # 8
 enforse_div32 = 'CROP' # we usually need the dimensions to be divisible by a power of two (32 in this case)
 PLOT = True
 
@@ -46,8 +46,6 @@ imgs['orig_np'] = pil_to_np(HR_pil)
 
 HR_np = pil_to_np(HR_pil)
 LR_np = pil_to_np(LR_pil)
-
-factor = HR_pil.size[0] // LR_pil.size[0]
 
 imgs['HR_pil'] = HR_pil
 imgs['LR_pil'] = LR_pil
@@ -75,7 +73,7 @@ pad   =     'reflection'
 OPT_OVER =  'net'
 KERNEL_TYPE ='lanczos2'
 
-LR = 0.01
+LR = 0.00001
 tv_weight = 0.0
 
 OPTIMIZER = 'adam'
@@ -87,7 +85,7 @@ elif factor == 8:
     num_iter = 4000
     reg_noise_std = 0.05
 else:
-    num_iter = 4000
+    num_iter = 10000
     reg_noise_std = 0.03
 #     assert False, 'We did not experiment with other factors'
 
