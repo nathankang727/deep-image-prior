@@ -85,8 +85,8 @@ elif factor == 8:
     num_iter = 4000
     reg_noise_std = 0.05
 else:
-    num_iter = 10000
-    reg_noise_std = 0.03
+    num_iter = 20000
+    reg_noise_std = 0
 #     assert False, 'We did not experiment with other factors'
 
 
