@@ -39,8 +39,8 @@ PLOT = True
 imgs = {}
 
 # Load images using PIL
-HR_pil = Image.open('data/sr/label_500x500.png').convert('RGB')
-LR_pil = Image.open('data/sr/input_1000x1000.png').convert('RGB')
+HR_pil = Image.open('data/sr/input_100x100_normalized.png').convert('RGB')
+LR_pil = Image.open('data/sr/input_200x200_normalized.png').convert('RGB')
 
 imgs['orig_np'] = pil_to_np(HR_pil)
 
@@ -59,7 +59,7 @@ imgs['bicubic_np'], imgs['sharp_np'], imgs['nearest_np'] = get_baselines(imgs['L
 
 if PLOT:
     plot_image_grid([imgs['HR_np'], imgs['bicubic_np'], imgs['sharp_np'], imgs['nearest_np']], 4,12);
-    plt.savefig("super_res_data_training/input_images.png", bbox_inches="tight")
+    plt.savefig("super_res_data_training2/input_images.png", bbox_inches="tight")
     print ('PSNR bicubic: %.4f   PSNR nearest: %.4f' %  (
                                         compare_psnr(imgs['HR_np'], imgs['bicubic_np']), 
                                         compare_psnr(imgs['HR_np'], imgs['nearest_np'])))
@@ -73,7 +73,7 @@ pad   =     'reflection'
 OPT_OVER =  'net'
 KERNEL_TYPE ='lanczos2'
 
-LR = 0.00001
+LR = 0.000001
 tv_weight = 0.0
 
 OPTIMIZER = 'adam'
@@ -85,8 +85,8 @@ elif factor == 8:
     num_iter = 4000
     reg_noise_std = 0.05
 else:
-    num_iter = 20000
-    reg_noise_std = 0
+    num_iter = 80000
+    reg_noise_std = 0.03
 #     assert False, 'We did not experiment with other factors'
 
 
@@ -114,7 +114,7 @@ psnr_HR_values = []     # List of psnr_HR values for each iteration (y-axis for 
 
 best_psnr_HR = 0        # Best PSNR value so far for HR (high resolution)  
 best_iter = 0           # Iteration where best PSNR value occurred
-patience = 500           # Patience value
+patience = 200          # Patience value
 best_net_output = None  # Best network output value so far
 early_stop_counter = 0  # Counter before patience
 
@@ -163,7 +163,7 @@ def closure():
     if PLOT and i % 100 == 0:
         out_HR_np = torch_to_np(out_HR)
         plot_image_grid([imgs['HR_np'], imgs['bicubic_np'], np.clip(out_HR_np, 0, 1)], factor=13, nrow=3)
-        plt.savefig("super_res_data_training/iteration_" + str(i) + ".png", bbox_inches="tight")
+        plt.savefig("super_res_data_training2/iteration_" + str(i) + ".png", bbox_inches="tight")
         plt.close()
         
     iterations.append(i)
@@ -186,14 +186,14 @@ out_HR_np = np.clip(torch_to_np(best_net_output), 0, 1)
 result_deep_prior = put_in_center(out_HR_np, imgs['orig_np'].shape[1:])
 
 plt.plot(iterations, psnr_HR_values)
-plt.savefig("super_res_data_training/PSNR_Graph.png", bbox_inches="tight")
+plt.savefig("super_res_data_training2/PSNR_Graph.png", bbox_inches="tight")
 plt.close()
 
 # For the paper we acually took `_bicubic.png` files from LapSRN viewer and used `result_deep_prior` as our result
 plot_image_grid([imgs['HR_np'],
                  imgs['bicubic_np'],
                  out_HR_np], factor=4, nrow=1);
-plt.savefig("super_res_data_training/final_result.png", bbox_inches="tight")
+plt.savefig("super_res_data_training2/final_result.png", bbox_inches="tight")
 plt.close()
 
 # Print total runtime.
