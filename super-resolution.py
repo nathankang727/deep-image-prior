@@ -22,7 +22,7 @@ import time
 start_time = time.time()
 
 torch.backends.cudnn.enabled = True
-torch.backends.cudnn.benchmark =True
+torch.backends.cudnn.benchmark = True
 dtype = torch.cuda.FloatTensor
 
 imsize = -1 
