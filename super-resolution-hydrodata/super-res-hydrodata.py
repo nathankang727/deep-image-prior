@@ -6,6 +6,7 @@ from models import get_net
 from models.downsampler import Downsampler
 from utils.common_utils import get_noise, get_params, optimize
 from utils.sr_utils import tv_loss
+import scipy
 import time
 
 start_time = time.time()
@@ -15,7 +16,7 @@ torch.backends.cudnn.benchmark = True
 
 # Load HR data
 HR_tensor = torch.from_numpy(np.load("/home/nk1495/deep-image-prior/data/sr/label_500m_tensor.npy")).cuda()
-HR_tensor = HR_tensor.unsqueeze(0).unsqueeze(0)
+# HR_tensor = HR_tensor.unsqueeze(0).unsqueeze(0)
 
 # Load LR data
 LR_tensor = torch.from_numpy(np.load("/home/nk1495/deep-image-prior/data/sr/input_1000m_tensor.npy")).cuda()
@@ -42,8 +43,8 @@ LR_var = LR_tensor.detach().cuda()
 
 # Optimization prep
 reg_noise_std = 0.03
-net_input_saved = net_input.cuda().detach().clone()
-noise = net_input.cuda().detach().clone()
+net_input_saved = net_input.detach().cuda().clone()
+noise = net_input.detach().cuda().clone()
 
 i = 0
 iterations = []         # List of all iterations (x-axis for graph)
@@ -89,34 +90,39 @@ def closure():
     return total_loss
 
 params = get_params('net', net, net_input)
-optimize('adam', params, closure, LR=0.01, num_iter=15000)
+optimize('adam', params, closure, LR=0.001, num_iter=15000)
 
 # Evaluation
-out_HR_final = best_net_output.detach()      # shape: [1, 8, 64, 44]
-out_LR_final = downsampler(out_HR_final)
-out_HR_final_0 = out_HR_final[:, 0:1, :, :]  # shape: [1, 1, 64, 44]
+out_HR_final = best_net_output.detach()                # shape: [1, 8, 64, 44]
+out_LR_final = downsampler(out_HR_final).detach()      # shape: [1, 8, 64, 44]
+out_HR_final_0 = out_HR_final[:, 0:1, :, :]            # shape: [1, 1, 64, 44]
 
-psnr_lr = -10 * torch.log10(nn.functional.mse_loss(out_LR_final, LR_tensor)).item()
-psnr_hr = -10 * torch.log10(nn.functional.mse_loss(out_HR_final_0, HR_tensor)).item()
-
-print(f"\nPSNR (LR): {psnr_lr:.2f}")
-print(f"PSNR (HR): {psnr_hr:.2f}")
+# Save network output as numpy arrays
+# torch.save(out_HR_final, "filename")
+# torch.no_grad for disabling gradients
+np.save("training_outputs/HR_500m_tensor_8_channels.npy", out_HR_final.cpu().numpy())
+np.save("training_outputs/LR_1000m_tensor_8_channels.npy", out_LR_final.cpu().numpy())
+np.save("training_outputs/HR_500m_tensor_1_channel.npy", out_HR_final_0.cpu().numpy())
 
 # Visualization/Graphs
-# Compare network output & ground truth.
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+# Compare network output, label, and input.
+fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-im0 = axes[0].imshow(out_HR_final[0, 0].cpu(), cmap='gray')
-axes[0].set_title("Best DIP Output HR")
-fig.colorbar(im0, ax=axes[0])
+im00 = axes[0][0].imshow(out_HR_final[0, 0].cpu(), cmap='gray')
+axes[0][0].set_title("Best HR Output, 0th channel")
+fig.colorbar(im00, ax=axes[0][0])
 
-im1 = axes[1].imshow(HR_tensor[0, 0].cpu(), cmap='gray')
-axes[1].set_title("Ground Truth HR")
-fig.colorbar(im1, ax=axes[1])
+im01 = axes[0][1].imshow(HR_tensor.cpu(), cmap='gray')
+axes[0][1].set_title("HR Label, 0th channel")
+fig.colorbar(im01, ax=axes[0][1])
 
-im2 = axes[2].imshow(LR_tensor[0, 0].cpu(), cmap='gray')
-axes[2].set_title("Input LR")
-fig.colorbar(im2, ax=axes[2])
+im10 = axes[1][0].imshow(out_LR_final[0, 0].cpu(), cmap='gray')
+axes[1][0].set_title("Best LR Output, 0th channel")
+fig.colorbar(im00, ax=axes[1][0])
+
+im11 = axes[1][1].imshow(LR_tensor[0, 0].cpu(), cmap='gray')
+axes[1][1].set_title("LR Input, 0th chanel")
+fig.colorbar(im11, ax=axes[1][1])
 
 plt.tight_layout()
 plt.savefig("training_outputs/comparison.png", bbox_inches="tight")
